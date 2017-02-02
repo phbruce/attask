@@ -35,11 +35,9 @@ module Attask
 
     def make_request(method, path, params = {}, headers = {})
       response = @conn.send(method, path, params, headers)
-      if response.headers['Content-Type'].match?(%r{^application/json})
-        Response.new(Oj.load(response.body))
-      else
-        Response.new(response.body)
-      end
+      body = response.body
+      return Response.new(body) if response.headers['Content-Type'].nil?
+      Response.new(Oj.load(body))
     end
   end
 end

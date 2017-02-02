@@ -4,10 +4,10 @@
 module Attask
   # lib/attask/client.rb
   class Client
-    ENDPOINT = 'https://fcbbrasil.attask-ondemand.com/attask/api/v6.0'
-
-    def initialize(opts = {})
+    def initialize(app, opts = {})
+      @app = app
       @opts = opts
+      @endpoint = "https://#{app}.attask-ondemand.com/attask/api/v6.0"
       @session_id = session_id
     end
 
@@ -60,10 +60,19 @@ module Attask
       request(:post, path)
     end
 
+    def download(download_url, filename, save_to)
+      params = @session_id
+      s_id = @session_id['sessionID']
+      path =
+        "https://#{@app}.attask-ondemand.com/#{download_url}&sessionID=#{s_id}"
+      response = request(:get, path)
+      save_file(filename, response)
+    end
+
     private
 
     def mount_path(object_code, object_id = '')
-      "#{ENDPOINT}/#{object_code}#{object_id}"
+      "#{@endpoint}/#{object_code}#{object_id}"
     end
 
     def session_id
@@ -81,6 +90,10 @@ module Attask
       objs.inject({}) { |obj, query| query.merge(obj) }.delete_if do |_, v|
         v.empty?
       end
+    end
+
+    def save_file(filename, file)
+      File.open(filename, 'wb') { |f| f.write(file) }
     end
 
     def request(method, path, params = {}, headers = {})
