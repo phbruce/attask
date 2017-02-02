@@ -2,21 +2,23 @@
 
 A classe Attask::Client é a interface HTTP da Attask sob as configurações da TIM beta. Nela é possível fazer as requisições encontradas na [https://developers.workfront.com/api-docs/#Actions](documentação) da própria Attask.
 
-## Entre no docker
+## Como usar
 
-```bash
-# Entre no bash
-docker-compose run runner bash
+Configure os dados de acesso
 
-# Entre no console
-bundle console
+```ruby
+# Exemplo:
+Attask.configure do |config|
+  config.username = ENV['ATTASK_USERNAME']
+  config.password = ENV['ATTASK_PASSWORD']
+end
 ```
 
-## Queries
+### Queries
 
 **Queries aceitas:** `eq`, `ne`, `gte`, `lte`, `isnull`, `notnull` e `contains`.
 
-### Exemplo de uma query usando between
+Exemplo de uma query usando between:
 
 ```ruby
 require_relative 'lib/attask/client.rb'
@@ -35,11 +37,11 @@ client = Attask::Client.new({ timeout: 120 })
 client.search(object, query)
 ```
 
-## Fields
+### Fields
 
 Para cada Objeto, existem uma quantidade de campos (`fields`) que você pode obter a partir dele em seu retorno. Para saber os campos que cada objeto, entre neste [https://developers.workfront.com/api-docs/api-explorer/](link). Lembrando que atualmente utilizamos a versão 6.0 da API da attask.
 
-### Exemplo de uso
+Exemplo utilizando o objeto `DOCU`, solicitando o campo `downloadURL`:
 
 ```ruby
 require_relative 'lib/attask/client.rb'
@@ -53,7 +55,7 @@ client = Attask::Client.new({ timeout: 120 })
 client.search(object, { '$$LIMIT' => 2000 }, fields)
 ```
 
-## Fazendo upload de arquivos
+## Upload de arquivos
 
 ```ruby
 require_relative 'lib/attask/client.rb'
