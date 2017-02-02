@@ -1,6 +1,6 @@
 # Attask
 
-A classe Attask::Client é a interface HTTP da Attask sob as configurações da TIM beta. Nela é possível fazer as requisições encontradas na [https://developers.workfront.com/api-docs/#Actions](documentação) da própria Attask.
+A classe Attask::Client é a interface HTTP da Attask onde é possível fazer as requisições encontradas na [https://developers.workfront.com/api-docs/#Actions](documentação).
 
 ## Como usar
 
