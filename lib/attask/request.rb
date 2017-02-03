@@ -38,6 +38,8 @@ module Attask
       body = response.body
       return Response.new(body) if response.headers['Content-Type'].nil?
       Response.new(Oj.load(body))
+    rescue
+      Response.new(body)
     end
   end
 end
