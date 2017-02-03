@@ -1,83 +1,89 @@
-# Attask
+# Attask Ruby Client
 
-A classe Attask::Client é a interface HTTP da Attask onde é possível fazer as requisições encontradas na [https://developers.workfront.com/api-docs/#Actions](documentação).
+This gem is a interface that allows you to make requisitions in the attask. Check it out the [documentation](https://developers.workfront.com/api-docs/).
 
-## Como usar
-
-Configure os dados de acesso
+## Instalation
 
 ```ruby
-# Exemplo:
-Attask.configure do |config|
-  config.username = ENV['ATTASK_USERNAME']
-  config.password = ENV['ATTASK_PASSWORD']
-end
+gem install attask
 ```
+
+```ruby
+gem 'attask'
+```
+
+## Usage
+
+Configure the data access
+
+```ruby
+Attask.configure do |config|
+  config.username = ENV['ATTAKS_USERNAME']
+  config.password = ENV['ATTAKS_PASSWORD']
+end
+````
+
+Create a client
+
+```ruby
+client = Attask::Client.new('app_name')
+```
+
+> The `app_name` basically is the reference to mount the url e.g.: `https://#{app_name}.attask-ondemand.com/api/v6.0`
 
 ### Queries
 
-**Queries aceitas:** `eq`, `ne`, `gte`, `lte`, `isnull`, `notnull` e `contains`.
+Queries allowed: `eq`, `ne`, `gte`, `lte`, `isnull` and `contains`.
 
-Exemplo de uma query usando between:
+Example of a query using the `between` query
 
 ```ruby
-require_relative 'lib/attask/client.rb'
-
-# Setando o objeto que quero` buscar
 object = 'TASK'
 
-# Montando a query
 query = {
   'plannedCompletionDate'       => '$$TODAY-7',
   'plannedCompletionDate_Range' => '$$TODAY',
   'plannedCompletionDate_Mod'   => 'between'
 }
 
-client = Attask::Client.new({ timeout: 120 })
 client.search(object, query)
 ```
 
 ### Fields
 
-Para cada Objeto, existem uma quantidade de campos (`fields`) que você pode obter a partir dele em seu retorno. Para saber os campos que cada objeto, entre neste [https://developers.workfront.com/api-docs/api-explorer/](link). Lembrando que atualmente utilizamos a versão 6.0 da API da attask.
-
-Exemplo utilizando o objeto `DOCU`, solicitando o campo `downloadURL`:
+Retrieving the the field `downloadURL`
 
 ```ruby
-require_relative 'lib/attask/client.rb'
-# Setando o objeto que quero buscar
 object = 'DOCU'
-
-# definindo os campos que eu quero que retorne
 fields = ['downloadURL']
-
-client = Attask::Client.new({ timeout: 120 })
-client.search(object, { '$$LIMIT' => 2000 }, fields)
+client.search('object', { objID: 'xxxxxxxx...' }, fields)
 ```
 
-## Upload de arquivos
+### File upload
 
 ```ruby
-require_relative 'lib/attask/client.rb'
-client = Attask::Client.new
-
-filename = 'teste.txt'
-description = 'descricao'
-object_code = 'TASK'
-object_id = '586ab38f001b36bfbb586053760aec3d'
-
-# Crie um handle
-handle = client.handle("./#{filename}", 'text/plain')
-
-# Com o handle em mãos, faca a requisição para envio de um documento
-
 params = {
-  description: description,
-  docObjCode: object_code,
-  objID: object_id,
-  handle: handle,
-  name: filename
-}.to_json
+  name: 'teste.txt',
+  description: 'descricao',
+  docObjCode: 'TASK',
+  objID: 'xxxxxxxx...'
+}
 
-client.upload(params)
+client.upload(params, './teste.txt', 'text/plain')
+```
+
+### Downloading files
+
+```ruby
+# Retrieving a download_url
+
+object = 'DOCU'
+fields = ['downloadURL']
+files = client.search('object', { objID: 'xxxxxxxx...' }, fields)
+download_url = files[0]['downloadURL']
+
+# It's optional
+replace_filename = 'example.txt'
+
+client.download(download_url, replace_filename)
 ```
