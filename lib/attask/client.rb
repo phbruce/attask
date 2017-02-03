@@ -12,77 +12,82 @@ module Attask
     end
 
     def search(object_code, params = {}, fields = [])
-      params = merge_hashes(@session_id, params, fields: fields.join(','))
+      params = merge_hashes(params, fields: fields.join(','))
       path = mount_path(object_code, '/search')
       request(:get, path, params)
     end
 
     def get_list(object_code, ids = [], fields = [])
-      fields = fields.join(',')
-      params = merge_hashes(@session_id, { id: ids.join(',') }, fields: fields)
+      params = merge_hashes({ id: ids.join(',') }, fields: fields.join(','))
       path = mount_path(object_code, '')
       request(:get, path, params)
     end
 
     def get(object_code, object_id, params = {}, fields = [])
-      params = merge_hashes(@session_id, params, fields: fields.join(','))
+      params = merge_hashes(params, fields: fields.join(','))
       path = mount_path(object_code, object_id)
       request(:get, path, params)
     end
 
     def put(object_code, object_id, params = {}, fields = [])
-      params = merge_hashes(@session_id, params, fields: fields.join(','))
+      params = merge_hashes(params, fields: fields.join(','))
       path = mount_path(object_code, object_id)
       request(:put, path, params)
     end
 
     def post(object_code, object_id, params = {}, fields = [])
-      params = merge_hashes(@session_id, params, fields: fields.join(','))
+      params = merge_hashes(params, fields: fields.join(','))
       path = mount_path(object_code, object_id)
       request(:post, path, params)
     end
 
-    def delete(object_code, object_id, params)
+    def delete(object_code, object_id, params = {})
       path = mount_path(object_code, object_id)
       request(:delete, path, params)
     end
 
-    def handle(image_path, multipart_data_format)
-      upload_io = Faraday::UploadIO.new(image_path, multipart_data_format)
-      params = { uploadedFile: upload_io }
-      path = mount_path("upload?sessionID=#{session_id['sessionID']}")
-      request(:post, path, params)['data']['handle']
+    def upload(updates, image_path, data_format)
+      updates[:handle] = handle(image_path, data_format)
+      params = { updates: updates.to_json }
+      path = mount_path('document')
+      request(:post, path, params)
     end
 
-    def upload(updates)
-      s_id = @session_id['sessionID']
-      path = mount_path("document?sessionID=#{s_id}&updates=#{updates}")
-      request(:post, path)
-    end
-
-    def download(download_url, filename, save_to)
-      params = @session_id
-      s_id = @session_id['sessionID']
-      path =
-        "https://#{@app}.attask-ondemand.com/#{download_url}&sessionID=#{s_id}"
+    def download(download_url, filename)
+      path = mount_download_path(download_url)
       response = request(:get, path)
       save_file(filename, response)
     end
 
     private
 
-    def mount_path(object_code, object_id = '')
-      "#{@endpoint}/#{object_code}#{object_id}"
+    def mount_path(object_code, object_id = '', login_path = false)
+      return "#{@endpoint}/#{object_code}#{object_id}" if login_path
+      "#{@endpoint}/#{object_code}#{object_id}?sessionID=#{@session_id}"
+    end
+
+    def mount_download_path(download_url)
+      s_id = @session_id
+      "https://#{@app}.attask-ondemand.com/#{download_url}&sessionID=#{s_id}"
+    end
+
+    def handle(image_path, data_format)
+      params = payload_file(image_path, data_format)
+      path = mount_path('upload')
+      request(:post, path, params)['data']['handle']
+    end
+
+    def payload_file(image_path, data_format)
+      { uploadedFile: Faraday::UploadIO.new(image_path, data_format) }
     end
 
     def session_id
-      { 'sessionID' => login['data']['sessionID'] }
+      login['data']['sessionID']
     end
 
     def login
-      config = Config
-      params = { username: config.username, password: config.password }
-      path = mount_path('login', '')
+      params = { username: Config.username, password: Config.password }
+      path = mount_path('login', '', true)
       request(:post, path, params)
     end
 
