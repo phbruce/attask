@@ -1,6 +1,6 @@
 # Attask Ruby Client
 
-This gem is a interface that allows you to make requisitions in the attask. Check it out the [documentation](https://developers.workfront.com/api-docs/).
+This gem is an interface that allows you to make requisitions in the attask. Check it out the [documentation](https://developers.workfront.com/api-docs/).
 
 ## Instalation
 
